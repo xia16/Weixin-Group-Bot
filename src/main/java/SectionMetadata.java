@@ -1,10 +1,8 @@
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 
 @Data
 public class SectionMetadata {
-    private int sectionId;
-    private String sectionName;
+    private HashMap<String, Integer> sections;
 }
