@@ -47,10 +47,19 @@ public class Utils {
                "/metadata.json";
     }
 
-    public static Question getQuestion( String organization, String subject, int section, int questionId ) {
+    private static Question getQuestion( String organization, String subject, int section, int questionId ) {
         String s3Key = s3Key(organization, subject, section, questionId);
         System.out.println(s3Key);
         return getObject(BUCKET_NAME, s3Key, Question.class);
+    }
+
+    public static String getQuestionFromRequest(String organization, String subject, String sectionName, int questionId) {
+        int sectionId = getSectionId(organization, subject, sectionName);
+        Question q = getQuestion(organization, subject, sectionId, questionId);
+        if (q == null) {
+            return "";
+        }
+        return new Gson().toJson(q);
     }
 
     private static int getSectionId(String organization, String subject, String sectionName) {
@@ -173,4 +182,39 @@ public class Utils {
 
         return 0;
     }
+
+    public static int addDiscussion(String organization, String subject, String sectionName, int questionId, int posterId,
+                                    String contents) {
+        int sectionId = getSectionId(organization, subject, sectionName);
+        Question q = getQuestion(organization, subject, sectionId, questionId);
+
+        if (q == null) {
+            return -1;
+        }
+
+        ArrayList<Discussion> discussions = q.getCorrespondence();
+        Discussion newDiscussion = Discussion.builder().contents(contents)
+                .postDate(ZonedDateTime.now().toString())
+                .posterId(posterId)
+                .build();
+        discussions.add(newDiscussion);
+        q.setCorrespondence(discussions);
+
+        String s3Key = s3Key(organization, subject, sectionId, questionId);
+        postObject(BUCKET_NAME, s3Key, q);
+
+        return 0;
+    }
+
+    public static SectionMetadata getSectionMetadata(String organization, String subject, String sectionName) {
+        int sectionId = getSectionId(organization, subject, sectionName);
+        String s3key = sectionMetadataS3Key(organization, subject, sectionId);
+        return getObject(BUCKET_NAME, s3key, SectionMetadata.class);
+    }
+
+    public static SubjectMetadata getSubjectMetadata(String organization, String subject, String sectionName) {
+        String s3key = subjectMetadataS3Key(organization, subject);
+        return getObject(BUCKET_NAME, s3key, SubjectMetadata.class);
+    }
+
 }
