@@ -1,3 +1,7 @@
+import com.google.common.collect.Sets;
+
+import java.util.HashSet;
+
 import static spark.Spark.*;
 
 public class Server {
@@ -28,14 +32,48 @@ public class Server {
     }
 
     public static void main( String[] args ) {
-        enableCORS( "*", "*", "*" );
-        get("/hello", (req, res) -> "Hello World");
-        get( "/getQuestion/*", ( req, res ) -> {
-            String organization = req.queryParams( "organization" );
-            String subject = req.queryParams( "subject" );
-            String section = req.queryParams( "section" );
+        enableCORS("*", "*", "*");
+        get( "/getQuestion/*", (req, res) -> {
+            String organization = req.queryParams("organization");
+            String subject = req.queryParams("subject");
+            String section = req.queryParams("section");
             int questionId = Integer.valueOf(req.queryParams("questionId"));
             return Utils.getQuestionFromRequest(organization, subject, section, questionId );
+        } );
+
+        get("/addDiscussion/*", (req, res) -> {
+            String organization = req.queryParams("organization");
+            String subject = req.queryParams("subject");
+            String section = req.queryParams("section");
+            int questionId = Integer.valueOf(req.queryParams("questionId"));
+            int posterId = Integer.valueOf(req.queryParams("posterId"));
+            String contents = req.queryParams("contents");
+            return Utils.addDiscussion(organization, subject, section, questionId, posterId, contents );
+        });
+
+        get("/addQuestion/*", (req, res) -> {
+            String organization = req.queryParams("organization");
+            String subject = req.queryParams("subject");
+            String section = req.queryParams("section");
+            String tags = req.queryParams("tags");
+            HashSet<String> tagSet = Sets.newHashSet(tags.split(","));
+            String title = req.queryParams("title");
+            int posterId = Integer.valueOf(req.queryParams("posterId"));
+            String contents = req.queryParams("contents");
+            return Utils.postQuestion(organization, subject, section, tagSet, title, contents);
+        });
+
+        get( "/getSectionMetadata/*", (req, res) -> {
+            String organization = req.queryParams("organization");
+            String subject = req.queryParams("subject");
+            String section = req.queryParams("section");
+            return Utils.getSectionMetadataFromRequest(organization, subject, section);
+        } );
+
+        get( "/getSubjectMetadata/*", (req, res) -> {
+            String organization = req.queryParams("organization");
+            String subject = req.queryParams("subject");
+            return Utils.getSubjectMetadataFromRequest(organization, subject);
         } );
     }
 }

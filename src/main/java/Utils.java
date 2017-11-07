@@ -212,9 +212,16 @@ public class Utils {
         return getObject(BUCKET_NAME, s3key, SectionMetadata.class);
     }
 
-    public static SubjectMetadata getSubjectMetadata(String organization, String subject, String sectionName) {
+    public static SubjectMetadata getSubjectMetadata(String organization, String subject) {
         String s3key = subjectMetadataS3Key(organization, subject);
         return getObject(BUCKET_NAME, s3key, SubjectMetadata.class);
     }
 
+    public static String getSectionMetadataFromRequest(String organization, String subject, String sectionName) {
+        return new Gson().toJson(getSectionMetadata(organization, subject, sectionName));
+    }
+
+    public static String getSubjectMetadataFromRequest(String organization, String subject) {
+        return new Gson().toJson(getSubjectMetadata(organization, subject));
+    }
 }
